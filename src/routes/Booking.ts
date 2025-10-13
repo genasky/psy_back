@@ -3,6 +3,7 @@ import { Booking } from '../models/Booking'
 import {validate} from "../middleware/validate";
 import {bookingSchema} from "../validation/bookingSchema";
 import {Slot} from "../models/Slot";
+import {sendBookingNotification} from "../services/TelegramNotificationService";
 
 const router = Router()
 
@@ -19,6 +20,9 @@ router.post('/', validate(bookingSchema), async (req, res) => {
 
         const booking = new Booking({ date, time, name, phone, comment })
         await booking.save()
+
+        console.log(booking)
+        await sendBookingNotification({ date, time, name, phone, comment });
 
         res.status(201).json({
             message: 'Запись успешно создана',
