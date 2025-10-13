@@ -48,7 +48,7 @@ jobs:
               -o UserKnownHostsFile=~/.ssh/known_hosts \
               ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
             cd ${{ secrets.DEPLOY_PATH }}
-            pm2 restart psy_backend
+            pm2 reload all || pm2 restart all || echo "No PM2 found, skipping"
             # Если нужно очистить кэш nginx:
             sudo systemctl reload nginx || true
           EOF
