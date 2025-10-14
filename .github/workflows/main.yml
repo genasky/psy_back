@@ -31,9 +31,13 @@ jobs:
       - name: Upload project to server
         run: |
           rsync -az --delete \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.ssh/' \
+            --exclude 'node_modules/' \
             -e "ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts" \
             ./ \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/backend
 
       - name: Build & Restart server on remote
         run: |
@@ -41,7 +45,7 @@ jobs:
               -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=~/.ssh/known_hosts \
               ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
-            cd ${{ secrets.DEPLOY_PATH }}
+            cd ${{ secrets.DEPLOY_PATH }}/backend
             
             # Ставим все зависимости заново
             npm ci
