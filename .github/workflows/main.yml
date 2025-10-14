@@ -30,11 +30,12 @@ jobs:
 
       - name: Upload project to server
         run: |
-          rsync -az --ignore-existing \
+          rsync -az \
             --exclude '.git/' \
             --exclude '.github/' \
             --exclude '.ssh/' \
             --exclude 'node_modules/' \
+            --exclude '.env' \
             -e "ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts" \
             ./ \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/backend
