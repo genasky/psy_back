@@ -1,12 +1,15 @@
 import mongoose, { Schema, Document } from "mongoose";
+import bcrypt from "bcryptjs";
 
 export interface IUser extends Document {
     googleId?: string;
     email: string;
     password?: string;
-    name: string;
+    name?: string;
     avatar?: string;
     createdAt: Date;
+
+    comparePassword(password: string): boolean;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -26,7 +29,7 @@ const UserSchema = new Schema<IUser>(
         },
         name: {
             type: String,
-            required: true,
+            required: false,
         },
         avatar: {
             type: String,
@@ -39,4 +42,11 @@ const UserSchema = new Schema<IUser>(
     }
 );
 
-export default mongoose.model<IUser>("User", UserSchema);
+UserSchema.methods.comparePassword = function (password: string) {
+    return bcrypt.compareSync(password, this.password);
+}
+
+const User = mongoose.model<IUser>("User", UserSchema);
+
+export default User;
+

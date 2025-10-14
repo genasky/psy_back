@@ -9,7 +9,6 @@
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@types/morgan": "^1.9.10",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "~1.4.4",
@@ -23,6 +22,7 @@
     "morgan": "~1.9.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -31,10 +31,11 @@
     "@types/express": "^5.0.3",
     "@types/express-session": "^1.18.2",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/mongoose": "^5.11.96",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^24.7.2",
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.16",
+    "@types/passport-local": "^1.0.38",
     "@typescript-eslint/eslint-plugin": "^8.46.0",
     "@typescript-eslint/parser": "^8.46.0",
     "eslint": "^9.37.0",

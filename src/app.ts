@@ -6,7 +6,10 @@ import { initSlots } from "./config/initSlots";
 import cors from "cors";
 import morgan from "morgan";
 import session from "express-session";
-import passport from "./services/GoogleService";
+import passport from "passport";
+
+import "./services/LocalAuthService";
+import "./services/GoogleService";
 
 connectDB().then(() => initSlots());
 
