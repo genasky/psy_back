@@ -47,7 +47,9 @@ jobs:
               -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=~/.ssh/known_hosts \
               ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
-            cd ${{ secrets.DEPLOY_PATH }}
+            cd ${{ secrets.DEPLOY_PATH }}/backend
+            git pull origin main
+            npm install
             pm2 reload all || pm2 restart all || echo "No PM2 found, skipping"
             # Если нужно очистить кэш nginx:
             sudo systemctl reload nginx || true
