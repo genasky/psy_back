@@ -30,7 +30,7 @@ jobs:
 
       - name: Upload project to server
         run: |
-          rsync -az --delete \
+          rsync -az --ignore-existing \
             --exclude '.git/' \
             --exclude '.github/' \
             --exclude '.ssh/' \
