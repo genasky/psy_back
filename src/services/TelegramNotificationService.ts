@@ -1,18 +1,22 @@
 import axios from "axios";
 
 export async function sendBookingNotification({
-                                                  name,
-                                                  phone,
-                                                  date,
-                                                  time,
-                                                  comment,
-                                              }: {
+    name,
+    phone,
+    date,
+    time,
+    comment,
+}: {
     name: string;
     phone: string;
     date: string;
     time: string;
     comment?: string;
 }) {
+    if (process.env.NODE_ENV !== "production") {
+        return;
+    }
+
     const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
     const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID!; // ID чата/канала/группы администратора
 
