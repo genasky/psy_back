@@ -2,14 +2,15 @@ import { Router, Request, Response, NextFunction } from "express";
 import { default as gpassport } from "../services/GoogleService";
 import LocalAuthStrategy from "../services/LocalAuthService";
 import { generateToken } from "../services/JwtService";
-import User from "../models/User";
+import User, { IUser } from "../models/User";
 import bcrypt from "bcryptjs";
+import passport from "passport";
 
 const router = Router();
 
 router.post('/register', async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
         return res.status(400).json({ message: "Email or password is missing" });
     }
 
@@ -20,7 +21,7 @@ router.post('/register', async (req: Request, res: Response) => {
         }
 
         const hash = await bcrypt.hash(password, 10);
-        const user = await User.create({ email, password: hash });
+        const user = await User.create({ email, name, password: hash });
 
         return res.status(201).json({ message: "Success", user: { id: user._id, email } });
     } catch (error) {
@@ -39,7 +40,7 @@ router.post(
         }
 
         try {
-            LocalAuthStrategy.authenticate(
+            passport.authenticate(
                 "local",
                 { session: false },
                 (
@@ -51,7 +52,7 @@ router.post(
                     if (!user)
                         return res.status(401).json({ message: info?.message || "Unauthorized" });
 
-                    const token = generateToken({ id: user.id });
+                    const token = generateToken({ userId: user.id });
                     return res.status(200).json({ message: "Success", token });
                 }
             )(req, res, next);
@@ -62,13 +63,20 @@ router.post(
     }
 );
 
-router.get('/google', gpassport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-router.get('/google/callback', gpassport.authenticate('google', { session: false }),
+router.get('/google/callback', passport.authenticate('google', { session: false }),
     (req, res) => {
-        const token = generateToken({ id: req.userId });
+        const user = req.user as IUser;
+        const token = generateToken({ userId: user?._id });
         res.redirect(`${process.env.CLIENT_URL}/auth?token=${token}`);
     }
 )
+
+router.post('/logout', async (req: Request, res: Response) => {
+    req.user = undefined;
+    req.userId = "";
+    res.status(200).json({ message: "Success" });
+});
 
 export default router;
