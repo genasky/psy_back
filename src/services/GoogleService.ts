@@ -25,7 +25,7 @@ passport.use(new GoogleStrategy({
     }
 ))
 
-passport.serializeUser((user: any, done) => done(null, user.id));
+passport.serializeUser((user: any, done) => done(null, { userId: user.id, role: user.role }));
 passport.deserializeUser((id, done) => User.findById(id).then(user => done(null, user)));
 
 export default passport;

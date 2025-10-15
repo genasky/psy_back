@@ -13,11 +13,18 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-        req.userId = decoded.userId;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; role: string };
+        req.user = { userId: decoded.userId, role: decoded.role };
         next();
     } catch (error) {
         res.status(401).json({ message: "Invalid token" });
     }
 };
 
+export const adminRole = (req: Request, res: Response, next: NextFunction) => {
+    const role = req.user?.role;
+    if (role !== "admin") {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    next();
+};

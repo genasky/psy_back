@@ -52,7 +52,7 @@ router.post(
                     if (!user)
                         return res.status(401).json({ message: info?.message || "Unauthorized" });
 
-                    const token = generateToken({ userId: user.id });
+                    const token = generateToken({ userId: user.id, role: user.role });
                     return res.status(200).json({ message: "Success", token });
                 }
             )(req, res, next);
@@ -68,14 +68,13 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 router.get('/google/callback', passport.authenticate('google', { session: false }),
     (req, res) => {
         const user = req.user as IUser;
-        const token = generateToken({ userId: user?._id });
+        const token = generateToken({ userId: user?._id, role: user?.role });
         res.redirect(`${process.env.CLIENT_URL}/auth?token=${token}`);
     }
 )
 
 router.post('/logout', async (req: Request, res: Response) => {
     req.user = undefined;
-    req.userId = "";
     res.status(200).json({ message: "Success" });
 });
 
