@@ -9,13 +9,21 @@ passport.use(new GoogleStrategy({
 },
     async (_accessToken, _refreshToken, profile, done) => {
         try {
-            let user = await User.findOne({ googleId: profile.id });
+            let user = await User.findOne({ email: profile.emails?.[0].value });
+            if (user && !user?.googleId) {
+                user.googleId = profile.id;
+                user.name = profile.displayName;
+                user.avatar = profile.photos?.[0].value;
+                user.verified = true;
+                user.save();
+            }
             if (!user) {
                 user = await User.create({
                     googleId: profile.id,
                     name: profile.displayName,
                     email: profile.emails?.[0].value,
                     avatar: profile.photos?.[0].value,
+                    verified: true,
                 });
             }
             done(null, user);

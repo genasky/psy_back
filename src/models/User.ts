@@ -9,6 +9,7 @@ export interface IUser extends Document {
     avatar?: string;
     createdAt: Date;
     role: "admin" | "user";
+    verified: boolean;
 
     comparePassword(password: string): boolean;
 }
@@ -41,6 +42,10 @@ const UserSchema = new Schema<IUser>(
             enum: ["admin", "user"],
             default: "user",
             required: true,
+        },
+        verified: {
+            type: Boolean,
+            default: false,
         },
         createdAt: {
             type: Date,
