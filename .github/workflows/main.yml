@@ -55,7 +55,7 @@ jobs:
             npm run build
             
             # Перезапускаем сервер через PM2
-            pm2 reload all || pm2 restart all || echo "No PM2 found, skipping"
+            pm2 reload psy_backend || pm2 restart psy_backend || echo "No PM2 found, skipping"
             
             # Перезагружаем nginx при необходимости
             sudo systemctl reload nginx || true
