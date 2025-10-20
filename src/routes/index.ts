@@ -4,6 +4,7 @@ import AuthRouter from "./Auth";
 import ProfileRouter from "./Profile";
 import AvatarRouter from "./Avatar";
 import AdminRouter from "./Admin";
+import PostRouter from "./Post";
 
 const router = Router();
 
@@ -16,5 +17,5 @@ router.use('/booking', BookingRouter);
 router.use('/profile', ProfileRouter);
 router.use('/avatar', AvatarRouter);
 router.use('/admin', AdminRouter);
-
+router.use('/post', PostRouter);
 export default router;
