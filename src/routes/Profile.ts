@@ -23,25 +23,20 @@ router.get('/role', authenticateJWT, async (req: any, res) => {
 })
 
 router.post('/change-password', authenticateJWT, async (req: any, res) => {
-    const { oldPassword, password } = req.body;
+    const { password, confirmedPassword } = req.body;
 
-    if (!oldPassword || !password) {
+    if (!password || !confirmedPassword) {
         return res.status(400).json({ message: 'Password is missing' });
+    }
+
+    if (password !== confirmedPassword) {
+        return res.status(400).json({ message: 'Passwords do not match' });
     }
 
     try {
         const user = await User.findById(req.user.userId).exec();
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
-        }
-
-        if (!user.password) {
-            return res.status(400).json({ message: 'Password not set' });
-        }
-
-        const isMatch = await user.comparePassword(oldPassword);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid password' });
         }
 
         user.password = await bcrypt.hash(password, 10);
