@@ -154,10 +154,14 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
 router.post("/reset-password/:id/:token", async (req: Request, res: Response) => {
     const { id, token } = req.params;
-    const { password } = req.body;
+    const { password, confirmedPassword } = req.body;
 
-    if (!password) {
+    if (!password || !confirmedPassword) {
         return res.status(400).json({ message: "Password is missing" });
+    }
+
+    if (password !== confirmedPassword) {
+        return res.status(400).json({ message: "Passwords do not match" });
     }
 
     if (!token || !id) {
