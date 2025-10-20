@@ -3,7 +3,7 @@ import { Booking } from '../models/Booking'
 import {validate} from "../middleware/validate";
 import {bookingSchema} from "../validation/bookingSchema";
 import {Slot} from "../models/Slot";
-import {sendBookingNotification} from "../services/TelegramNotificationService";
+import {sendBookingNotification, sendQuickMessageNotification} from "../services/TelegramNotificationService";
 
 const router = Router()
 
@@ -21,7 +21,6 @@ router.post('/', validate(bookingSchema), async (req, res) => {
         const booking = new Booking({ date, time, name, phone, comment })
         await booking.save()
 
-        console.log(booking)
         await sendBookingNotification({ date, time, name, phone, comment });
 
         res.status(201).json({
@@ -68,6 +67,19 @@ router.get('/slots', async (req, res) => {
         console.error('Ошибка при получении слотов:', err)
         res.status(500).json({ message: 'Ошибка сервера' })
     }
+})
+
+router.post('/quick-message', async (req, res) => {
+    const { name, email, message } = req.body;
+
+    if (!name && !email && !message) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+
+    console.log('hello 1')
+    await sendQuickMessageNotification({ name, email, message });
+
+    return res.status(200).json({ message: "ok"});
 })
 
 export default router
