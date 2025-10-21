@@ -1,9 +1,10 @@
 import { Router } from 'express'
 import { Booking } from '../models/Booking'
-import {validate} from "../middleware/validate";
-import {bookingSchema} from "../validation/bookingSchema";
-import {Slot} from "../models/Slot";
-import {sendBookingNotification, sendQuickMessageNotification} from "../services/TelegramNotificationService";
+import { validate } from "../middleware/validate";
+import { bookingSchema } from "../validation/bookingSchema";
+import { Slot } from "../models/Slot";
+import { sendBookingNotification, sendQuickMessageNotification } from "../services/TelegramNotificationService";
+import { adminRole, authenticateJWT } from '../middleware/auth';
 
 const router = Router()
 
@@ -39,6 +40,70 @@ router.get('/', async (req, res) => {
         const bookings = await Booking.find().sort({ date: 1, time: 1 })
         res.json(bookings)
     } catch (err) {
+        res.status(500).json({ message: 'Ошибка сервера' })
+    }
+})
+
+router.get('/period', authenticateJWT, adminRole, async (req, res) => {
+    try {
+        const { from, to } = req.query
+        if (!from) {
+            return res.status(400).json({ message: 'Параметр from и to обязательны' })
+        }
+
+        const bookings = await Booking.find({ date: { $gte: from, $lte: to } }).sort({ date: 1, time: 1 })
+        res.status(200).json(bookings)
+    } catch (err) {
+        res.status(500).json({ message: 'Ошибка сервера' })
+    }
+})
+
+router.put('/:id', authenticateJWT, adminRole, async (req, res) => {
+    try {
+        const { id } = req.params
+        const { time } = req.body
+
+        if (!time) {
+            return res.status(400).json({ message: 'Параметр time обязателен' })
+        }
+
+        // const existing = await Booking.findById({ date, time })
+        // if (existing) {
+        // return res.status(409).json({ message: 'Это время уже занято' })
+        // }
+
+        const booking = await Booking.findById(id)
+        if (!booking) {
+            return res.status(404).json({ message: 'Запись не найдена' })
+        }
+
+        booking.time = time;
+
+        await booking.save()
+
+        res.status(201).json({
+            message: 'Запись успешно отредактирована',
+            booking
+        })
+    } catch (err) {
+        console.error('Ошибка при создании записи:', err)
+        res.status(500).json({ message: 'Ошибка сервера' })
+    }
+})
+
+router.delete('/:id', authenticateJWT, adminRole, async (req, res) => {
+    try {
+        const { id } = req.params
+        const booking = await Booking.findByIdAndDelete(id)
+        if (!booking) {
+            return res.status(404).json({ message: 'Запись не найдена' })
+        }
+
+        res.status(200).json({
+            message: 'Запись успешно удалена'
+        })
+    } catch (err) {
+        console.error('Ошибка при удалении записи:', err)
         res.status(500).json({ message: 'Ошибка сервера' })
     }
 })
@@ -79,7 +144,7 @@ router.post('/quick-message', async (req, res) => {
     console.log('hello 1')
     await sendQuickMessageNotification({ name, email, message });
 
-    return res.status(200).json({ message: "ok"});
+    return res.status(200).json({ message: "ok" });
 })
 
 export default router
