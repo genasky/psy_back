@@ -143,8 +143,8 @@ router.put('/:slug', authenticateJWT, adminRole, async (req: any, res) => {
     post.slug = req.body.slug ?? post.slug
     post.content = req.body.content ?? post.content
     post.image = req.body.image ?? post.image
-    post.timeToRead = req.body.timeToRead ?? post.timeToRead
-    post.published = req.body.published === undefined ? post.published : req.body.published
+    post.timeToRead = req.body.minutes ?? post.timeToRead
+    post.published = req.body.published ?? post.published
     await post.save()
     return res.json({ message: 'Post updated' })
   } catch (error) {
