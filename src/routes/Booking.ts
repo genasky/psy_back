@@ -34,6 +34,25 @@ router.post('/', validate(bookingSchema), async (req, res) => {
     }
 })
 
+router.post('/create', authenticateJWT, adminRole, async (req, res) => {
+    try {
+        const { date, time, name, phone, comment } = req.body
+
+        const booking = new Booking({ date, time, name, phone, comment })
+        await booking.save()
+
+        await sendBookingNotification({ date, time, name, phone, comment });
+
+        res.status(201).json({
+            message: 'Запись успешно создана',
+            booking
+        })
+    } catch (err) {
+        console.error('Ошибка при создании записи:', err)
+        res.status(500).json({ message: 'Ошибка сервера' })
+    }
+})
+
 // 📋 GET /api/booking
 router.get('/', async (req, res) => {
     try {
