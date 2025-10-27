@@ -4,14 +4,25 @@ import { IUser } from './User'
 type TestType = 'SMI' | 'Beck' | 'Young'
 
 export interface ITestResults extends Document {
-  user: IUser
+  user: IUser | "anonymous"
   type: TestType
   results: number[] | Record<number, number>[]
   createdAt: Date
 }
 
 const testResultsSchema = new Schema<ITestResults>({
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  user: {
+    type: Schema.Types.Mixed,
+    required: true,
+    set: function (v: any) {
+      if (v === 'anonymous') return v
+      try {
+        return new Schema.Types.ObjectId(v)
+      } catch {
+        return v
+      }
+    }
+  },
   type: { type: String, enum: ['SMI', 'Beck', 'Young'], required: true },
   results: {
     type: Schema.Types.Mixed,
