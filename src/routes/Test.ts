@@ -57,4 +57,14 @@ router.get('/byUser/:userId', authenticateJWT, adminRole, async (req: any, res) 
     }
 });
 
+router.get('/status/:type', authenticateJWT, async (req: any, res) => {
+    const { type } = req.params;
+    try {
+        const tests = await TestResults.find({ type }).sort({ createdAt: -1 });
+        res.status(200).json({ status: !!tests.length });
+    } catch (err) {
+        res.status(500).json({ message: 'Error getting tests' });
+    }
+});
+
 export default router;
