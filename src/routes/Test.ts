@@ -204,4 +204,29 @@ router.get('/:type/:userId/results', authenticateJWT, adminRole, async (req: any
     }
 });
 
+router.post('/anon/save', authenticateJWT, async (req: any, res) => {
+    const { results } = req.body;
+
+    try {
+        if (!Array.isArray(results) || results.length === 0) {
+            return res.status(400).json({ message: 'Массив results пуст или невалиден' });
+        }
+
+        const updated = await TestResults.updateMany(
+            { _id: { $in: results }, user: 'anonymous' },
+            { $set: { user: new mongoose.Types.ObjectId(req.user.userId) } }
+        );
+
+        res.status(200).json({
+            message: 'Success',
+            matched: updated.matchedCount,
+            modified: updated.modifiedCount,
+        });
+    } catch (err) {
+        console.error('Error saving anonymous test:', err);
+        res.status(500).json({ message: 'Error saving anonymous test' });
+    }
+});
+
+
 export default router;

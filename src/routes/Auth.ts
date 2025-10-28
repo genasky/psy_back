@@ -206,4 +206,13 @@ router.post('/logout', async (req: Request, res: Response) => {
     res.status(200).json({ message: "Success" });
 });
 
+router.get('/check', async (req: Request, res: Response) => {
+    const { user } = req;
+    if (!user) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+    }
+    res.status(200).json({ message: "Success", user });
+});
+
 export default router;
