@@ -110,6 +110,32 @@ router.put('/:id', authenticateJWT, adminRole, async (req, res) => {
     }
 })
 
+router.put('/:id/full', authenticateJWT, adminRole, async (req, res) => {
+    try {
+        const { id } = req.params
+        const { name, phone, comment } = req.body
+
+        const booking = await Booking.findById(id)
+        if (!booking) {
+            return res.status(404).json({ message: 'Запись не найдена' })
+        }
+
+        booking.name = name;
+        booking.phone = phone;
+        booking.comment = comment;
+
+        await booking.save()
+
+        res.status(201).json({
+            message: 'Запись успешно отредактирована',
+            booking
+        })
+    } catch (err) {
+        console.error('Ошибка при создании записи:', err)
+        res.status(500).json({ message: 'Ошибка сервера' })
+    }
+})
+
 router.delete('/:id', authenticateJWT, adminRole, async (req, res) => {
     try {
         const { id } = req.params
