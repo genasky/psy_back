@@ -3,7 +3,7 @@ import { Booking } from '../models/Booking'
 import { validate } from "../middleware/validate";
 import { bookingSchema } from "../validation/bookingSchema";
 import { Slot } from "../models/Slot";
-import { sendBookingNotification, sendQuickMessageNotification } from "../services/TelegramNotificationService";
+import { removeBookingNotification, sendBookingNotification, sendQuickMessageNotification } from "../services/TelegramNotificationService";
 import { adminRole, authenticateJWT } from '../middleware/auth';
 
 const router = Router()
@@ -19,11 +19,10 @@ router.post('/', validate(bookingSchema), async (req, res) => {
             return res.status(409).json({ message: 'Это время уже занято' })
         }
 
-        const booking = new Booking({ date, time, name, phone, comment })
+        const messageId = await sendBookingNotification({ date, time, name, phone, comment });
+
+        const booking = new Booking({ date, time, name, phone, comment, messageId })
         await booking.save()
-
-        await sendBookingNotification({ date, time, name, phone, comment });
-
         res.status(201).json({
             message: 'Запись успешно создана',
             booking
@@ -38,10 +37,10 @@ router.post('/create', authenticateJWT, adminRole, async (req, res) => {
     try {
         const { date, time, name, phone, comment } = req.body
 
-        const booking = new Booking({ date, time, name, phone, comment })
-        await booking.save()
+        const messageId = await sendBookingNotification({ date, time, name, phone, comment });
 
-        await sendBookingNotification({ date, time, name, phone, comment });
+        const booking = new Booking({ date, time, name, phone, comment, messageId })
+        await booking.save()
 
         res.status(201).json({
             message: 'Запись успешно создана',
@@ -143,6 +142,8 @@ router.delete('/:id', authenticateJWT, adminRole, async (req, res) => {
         if (!booking) {
             return res.status(404).json({ message: 'Запись не найдена' })
         }
+
+        await removeBookingNotification({ messageId: booking.messageId! });
 
         res.status(200).json({
             message: 'Запись успешно удалена'
