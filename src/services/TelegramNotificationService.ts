@@ -36,14 +36,34 @@ export async function sendBookingNotification({
 `;
 
     try {
-        await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        const res = await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             chat_id: TELEGRAM_CHAT_ID,
             text: message,
             parse_mode: "Markdown",
         });
-
+        return res.data.result.message_id;
     } catch (error) {
         console.error("❌ Ошибка при отправке Telegram уведомления:", error);
+    }
+}
+
+export const removeBookingNotification = async ({
+    messageId
+}: {
+    messageId: number;
+}) => {
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+        console.warn("⚠️ Telegram notifications disabled: missing env vars");
+        return;
+    }
+
+    try {
+        await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteMessage`, {
+            chat_id: TELEGRAM_CHAT_ID,
+            message_id: messageId,
+        });
+    } catch (error) {
+        console.error("❌ Ошибка при удалении Telegram уведомления:", error);
     }
 }
 
@@ -51,14 +71,14 @@ export const sendQuickMessageNotification = async ({
     name,
     email,
     message
-} : {
+}: {
     name: string;
     email: string;
     message: string;
 }) => {
-    // if (process.env.NODE_ENV !== "production") {
-    //     return;
-    // }
+    if (process.env.NODE_ENV !== "production") {
+        return;
+    }
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
         console.warn("⚠️ Telegram notifications disabled: missing env vars");
