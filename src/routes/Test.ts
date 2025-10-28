@@ -153,9 +153,25 @@ router.get('/byUser/:userId', authenticateJWT, adminRole, async (req: any, res) 
 router.get('/status/:type', authenticateJWT, async (req: any, res) => {
     const { type } = req.params;
     try {
-        const tests = await TestResults.find({ type, user: req.user.userId }).sort({ createdAt: -1 });
+        const tests = await TestResults.find({
+            type,
+            user: new mongoose.Types.ObjectId(req.user.userId)
+        }).sort({ createdAt: -1 });
         console.log(tests, type)
         res.status(200).json({ status: !!tests.length });
+    } catch (err) {
+        res.status(500).json({ message: 'Error getting tests' });
+    }
+});
+
+router.get('/:type/results', authenticateJWT, async (req: any, res) => {
+    const { type } = req.params;
+    try {
+        const tests = await TestResults.find({
+            type,
+            user: new mongoose.Types.ObjectId(req.user.userId)
+        }).sort({ createdAt: -1 });
+        res.status(200).json(tests);
     } catch (err) {
         res.status(500).json({ message: 'Error getting tests' });
     }
