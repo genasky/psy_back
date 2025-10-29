@@ -6,6 +6,7 @@ import AvatarRouter from "./Avatar";
 import AdminRouter from "./Admin";
 import PostRouter from "./Post";
 import TestRouter from "./Test";
+import PhoneRouter from "./Phone";
 
 const router = Router();
 
@@ -20,4 +21,6 @@ router.use('/avatar', AvatarRouter);
 router.use('/admin', AdminRouter);
 router.use('/post', PostRouter);
 router.use('/test', TestRouter);
+router.use('/phone', PhoneRouter);
+
 export default router;

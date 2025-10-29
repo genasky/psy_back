@@ -4,7 +4,8 @@ import { validate } from "../middleware/validate";
 import { bookingSchema } from "../validation/bookingSchema";
 import { Slot } from "../models/Slot";
 import { removeBookingNotification, sendBookingNotification, sendQuickMessageNotification } from "../services/TelegramNotificationService";
-import { adminRole, authenticateJWT } from '../middleware/auth';
+import { adminRole, authenticateJWT, bookingRole, phoneVerifiedRole } from '../middleware/auth';
+import User from '../models/User';
 
 const router = Router()
 
@@ -76,7 +77,7 @@ router.get('/period', authenticateJWT, adminRole, async (req, res) => {
     }
 })
 
-router.put('/:id', authenticateJWT, adminRole, async (req, res) => {
+router.put('/:id', authenticateJWT, bookingRole, async (req, res) => {
     try {
         const { id } = req.params
         const { time } = req.body
@@ -109,7 +110,7 @@ router.put('/:id', authenticateJWT, adminRole, async (req, res) => {
     }
 })
 
-router.put('/:id/full', authenticateJWT, adminRole, async (req, res) => {
+router.put('/:id/full', authenticateJWT, bookingRole, async (req, res) => {
     try {
         const { id } = req.params
         const { name, phone, comment } = req.body
@@ -135,7 +136,7 @@ router.put('/:id/full', authenticateJWT, adminRole, async (req, res) => {
     }
 })
 
-router.delete('/:id', authenticateJWT, adminRole, async (req, res) => {
+router.delete('/:id', authenticateJWT, bookingRole, async (req, res) => {
     try {
         const { id } = req.params
         const booking = await Booking.findByIdAndDelete(id)
@@ -191,6 +192,20 @@ router.post('/quick-message', async (req, res) => {
     await sendQuickMessageNotification({ name, email, message });
 
     return res.status(200).json({ message: "ok" });
+})
+
+router.get('/phone', authenticateJWT, phoneVerifiedRole, async (req: any, res) => {
+    try {
+        const user = await User.findById(req.user.userId).exec();
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const bookings = await Booking.find({ phone: user.phone }).sort({ date: 1, time: 1 })
+        res.status(200).json(bookings)
+    } catch (err) {
+        res.status(500).json({ message: 'Ошибка сервера' })
+    }
 })
 
 export default router

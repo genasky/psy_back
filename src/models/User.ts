@@ -9,6 +9,8 @@ export interface IUser extends Document {
     avatar?: string;
     createdAt: Date;
     role: "admin" | "user";
+    phone?: string;
+    phoneVerified?: boolean;
     verified: boolean;
 
     comparePassword(password: string): boolean;
@@ -44,6 +46,13 @@ const UserSchema = new Schema<IUser>(
             required: true,
         },
         verified: {
+            type: Boolean,
+            default: false,
+        },
+        phone: {
+            type: String,
+        },
+        phoneVerified: {
             type: Boolean,
             default: false,
         },
