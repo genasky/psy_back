@@ -7,6 +7,7 @@ import passport from "passport";
 import crypto from "crypto";
 import EmailService from "../services/EmailService";
 import { JwtPayload } from "jsonwebtoken";
+import { authenticateJWT } from "../middleware/auth";
 
 const router = Router();
 
@@ -206,7 +207,7 @@ router.post('/logout', async (req: Request, res: Response) => {
     res.status(200).json({ message: "Success" });
 });
 
-router.get('/check', async (req: Request, res: Response) => {
+router.get('/check', authenticateJWT, async (req: Request, res: Response) => {
     const { user } = req;
     if (!user) {
         res.status(401).json({ message: "Unauthorized" });
