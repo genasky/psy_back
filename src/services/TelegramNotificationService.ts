@@ -52,6 +52,10 @@ export const removeBookingNotification = async ({
 }: {
     messageId: number;
 }) => {
+    if (process.env.NODE_ENV !== "production") {
+        return;
+    }
+
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
         console.warn("⚠️ Telegram notifications disabled: missing env vars");
         return;

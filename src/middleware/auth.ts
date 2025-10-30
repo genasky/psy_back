@@ -62,5 +62,7 @@ export const bookingRole = async (req: any, res: Response, next: NextFunction) =
             return res.status(401).json({ message: 'Not access' })
         }
         next()
+    } else {
+        next()
     }
 }
