@@ -1,62 +1,66 @@
-name: BACK Build & Deploy Full
+name: Build and Deploy Psy back
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-    concurrency:
-      group: build-deploy-main
-      cancel-in-progress: true
+    permissions:
+      contents: read
+      packages: write # Важно для пуша в GHCR
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          node-version: '18'
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # Используем стандартный токен GitHub
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+      - name: Build & push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          # Приводим тег к нижнему регистру (GHCR чувствителен к регистру)
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/psy_back:latest
+            ghcr.io/${{ github.repository_owner }}/psy_back:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/psy_back:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/psy_back:buildcache,mode=max
 
-      - name: Upload project to server
-        run: |
-          rsync -az \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude '.ssh/' \
-            --exclude 'node_modules/' \
-            --exclude '.env' \
-            -e "ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts" \
-            ./ \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/backend
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # Передаем переменные из GitHub Secrets в скрипт
+          script: |
+            cd /var/www/cope_back
 
-      - name: Build & Restart server on remote
-        run: |
-          ssh -i ~/.ssh/deploy_key \
-              -o StrictHostKeyChecking=no \
-              -o UserKnownHostsFile=~/.ssh/known_hosts \
-              ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
-            cd ${{ secrets.DEPLOY_PATH }}/backend
-            
-            # Ставим все зависимости заново
-            npm ci
-            
-            # Собираем TypeScript
-            npm run build
-            
-            # Перезапускаем сервер через PM2
-            pm2 reload psy_backend || pm2 restart psy_backend || echo "No PM2 found, skipping"
-            
-            # Перезагружаем nginx при необходимости
-            sudo systemctl reload nginx || true
-          EOF
+            # Авторизация в реестре на сервере
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            # Обновление и запуск
+            docker compose pull
+            export IMAGE_TAG=${{ github.sha }} 
+            docker compose up -d
+            # docker compose up -d --remove-orphans
+
+            # Очистка места
+            docker image prune -f
