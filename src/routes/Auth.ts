@@ -92,7 +92,7 @@ router.get("/verify/:id/:token", async (req: Request, res: Response) => {
         }
 
         const tokenCheck = verifyToken(token as string);
-        if (!tokenCheck || tokenCheck.id !== id) {
+        if (!tokenCheck || (tokenCheck as any)?.id !== id) {
             return res.status(400).json({ message: "Invalid or expired token" });
         }
 
