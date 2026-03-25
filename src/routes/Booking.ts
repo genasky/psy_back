@@ -162,16 +162,14 @@ router.get('/slots', async (req, res) => {
             return res.status(400).json({ message: 'Параметр date обязателен (YYYY-MM-DD)' })
         }
 
-        // все слоты из базы
-        const allSlots = await Slot.find().sort({ time: 1 })
+        // Mock data for development without database
+        const mockSlots = [
+            '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'
+        ]
 
-        // занятые слоты на дату
-        const bookings = await Booking.find({ date })
-        const bookedTimes = bookings.map(b => b.time)
-
-        const slotsWithAvailability = allSlots.map(slot => ({
-            time: slot.time,
-            available: slot.available && !bookedTimes.includes(slot.time)
+        const slotsWithAvailability = mockSlots.map(time => ({
+            time,
+            available: true // All slots available in dev mode
         }))
 
         res.json({ date, slots: slotsWithAvailability })
@@ -196,13 +194,19 @@ router.post('/quick-message', async (req, res) => {
 
 router.get('/phone', authenticateJWT, phoneVerifiedRole, async (req: any, res) => {
     try {
-        const user = await User.findById(req.user.userId).exec();
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' })
-        }
-
-        const bookings = await Booking.find({ phone: user.phone }).sort({ date: 1, time: 1 })
-        res.status(200).json(bookings)
+        // Mock response for development without database
+        const mockBookings = [
+            {
+                _id: "1",
+                date: "2024-01-15",
+                time: "10:00",
+                name: "John Doe",
+                phone: "+1234567890",
+                comment: "Test booking"
+            }
+        ]
+        
+        res.status(200).json(mockBookings)
     } catch (err) {
         res.status(500).json({ message: 'Ошибка сервера' })
     }

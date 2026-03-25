@@ -16,17 +16,20 @@ connectDB().then(() => initSlots());
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(cors());
-app.use(
-    session({
-        secret: process.env.SESSION_SECRET || "session_secret",
-        resave: false,
-        saveUninitialized: false,
-        cookie: { maxAge: 60000 },
-    })
-);
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
+// app.use(
+//     session({
+//         secret: process.env.SESSION_SECRET || "session_secret",
+//         resave: false,
+//         saveUninitialized: false,
+//         cookie: { maxAge: 60000 },
+//     })
+// );
+// app.use(passport.initialize());
+// app.use(passport.session());
 app.use(morgan("dev"));
 app.use("/api", routes);
 

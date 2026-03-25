@@ -5,12 +5,16 @@ const WORK_HOURS = [
 ]
 
 export const initSlots = async () => {
-    const count = await Slot.countDocuments()
-    console.log(count)
-    if (count !== WORK_HOURS.length) {
-        await Slot.deleteMany({});
-        const slots = WORK_HOURS.map(time => ({ time, available: true }))
-        await Slot.insertMany(slots)
-        console.log('✅ Базовые слоты созданы')
+    try {
+        const count = await Slot.countDocuments()
+        console.log(count)
+        if (count !== WORK_HOURS.length) {
+            await Slot.deleteMany({});
+            const slots = WORK_HOURS.map(time => ({ time, available: true }))
+            await Slot.insertMany(slots)
+            console.log('✅ Базовые слоты созданы')
+        }
+    } catch (error) {
+        console.warn('⚠️ Cannot initialize slots without database connection')
     }
 }
