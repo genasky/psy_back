@@ -11,7 +11,7 @@ import PhoneRouter from "./Phone";
 const router = Router();
 
 router.get("/", (req, res) => {
-    res.json({ message: "PSY API" });
+    res.json({ message: "PSY API v1" });
 });
 
 router.use('/auth', AuthRouter);
