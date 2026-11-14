@@ -34,7 +34,13 @@ router.post('/register', async (req: Request, res: Response) => {
 
         const token = await generateToken({ id: user._id, email }, '0.5h');
 
-        EmailService.sendVerificationEmail(user._id as never as string, email, token);
+        // Ошибка отправки письма не должна ронять процесс и не должна ломать регистрацию:
+        // письмо можно запросить повторно через /resend-verification.
+        try {
+            await EmailService.sendVerificationEmail(user._id as never as string, email, token);
+        } catch (err) {
+            console.error("Failed to send verification email:", err);
+        }
 
         return res.status(201).json({ message: "Success", user: { id: user._id, email } });
     } catch (error) {
@@ -121,7 +127,11 @@ router.get("/resend-verification", async (req: Request, res: Response) => {
 
         const token = await generateToken({ id: user._id, email }, '0.5h');
 
-        EmailService.sendVerificationEmail(user._id as never as string, email as never as string, token);
+        try {
+            await EmailService.sendVerificationEmail(user._id as never as string, email as never as string, token);
+        } catch (err) {
+            console.error("Failed to send verification email:", err);
+        }
 
         return res.status(200).json({ message: "Success" });
     } catch (error) {
@@ -145,7 +155,11 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
         const token = await generateToken({ id: user._id, email }, '0.5h');
 
-        EmailService.sendResetPasswordEmail(user._id as never as string, email as never as string, token);
+        try {
+            await EmailService.sendResetPasswordEmail(user._id as never as string, email as never as string, token);
+        } catch (err) {
+            console.error("Failed to send reset password email:", err);
+        }
 
         return res.status(200).json({ message: "Success" });
     } catch (error) {

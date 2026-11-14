@@ -6,7 +6,10 @@ const transporter = nodemailer.createTransport({
     secure: process.env.NODE_ENV === "production" ? true : false,
     auth: {
         user: process.env.NODEMAILER_EMAIL!,
-        pass: process.env.NODEMAILER_PASSWORD!,
+        // Пароль приложения Gmail — это 16 символов, часто записанные группами
+        // через пробел ("abcd efgh ijkl mnop"). Gmail требует значение без пробелов,
+        // иначе SMTP отвечает 535 BadCredentials.
+        pass: process.env.NODEMAILER_PASSWORD!.replace(/\s/g, ""),
     },
 });
 
